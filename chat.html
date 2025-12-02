@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Asistente de Productividad</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root {
+      --bg-main: #020617;
+      --bg-card: #020617;
+      --primary: #3b82f6;
+      --accent: #22c55e;
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --border: #374151;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+        "Segoe UI", sans-serif;
+    }
+
+    body {
+      background: radial-gradient(circle at top, #0f172a, #020617);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .chat-wrapper {
+      width: 100%;
+      max-width: 1140px;
+      max-height: 92vh;
+      background: radial-gradient(circle at top, #111827, #020617);
+      border-radius: 24px;
+      border: 1px solid rgba(55,65,81,0.9);
+      box-shadow: 0 18px 40px rgba(0,0,0,0.55);
+      padding: 18px 18px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .chat-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-circle {
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      background: conic-gradient(from 120deg,#3b82f6,#22c55e,#a855f7,#3b82f6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 18px rgba(59,130,246,0.8);
+    }
+
+    .logo-circle span {
+      color: #020617;
+      font-weight: 800;
+      font-size: 18px;
+    }
+
+    .logo-text h1 {
+      font-size: 17px;
+      font-weight: 600;
+    }
+
+    .logo-text p {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .status {
+      font-size: 11px;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 999px;
+      background: var(--accent);
+      box-shadow: 0 0 10px rgba(34,197,94,0.9);
+    }
+
+    .chat-body {
+      border-radius: 18px;
+      border: 1px solid rgba(55,65,81,0.9);
+      background: radial-gradient(circle at top left, rgba(37,99,235,0.15), rgba(15,23,42,0.95));
+      padding: 10px;
+      display: grid;
+      grid-template-columns: 1.6fr 1fr;
+      grid-template-rows: 1fr auto;
+      gap: 10px;
+      height: clamp(520px, 72vh, 780px);
+      overflow: hidden;
+    }
+
+    .messages {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding-right: 4px;
+      grid-column: 1 / 2;
+      grid-row: 1 / 2;
+    }
+
+    .msg-row {
+      display: flex;
+    }
+
+    .msg-row.user {
+      justify-content: flex-end;
+    }
+
+    .msg {
+      max-width: 80%;
+      border-radius: 14px;
+      padding: 8px 10px;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .msg.user {
+      background: radial-gradient(circle at top, #2563eb, #1d4ed8);
+      color: #e5e7eb;
+      border-bottom-right-radius: 4px;
+      box-shadow: 0 0 14px rgba(37,99,235,0.9);
+    }
+
+    .msg.ai {
+      background: rgba(15,23,42,0.98);
+      border: 1px solid rgba(55,65,81,0.9);
+      border-bottom-left-radius: 4px;
+    }
+
+    .msg-meta {
+      font-size: 10px;
+      color: var(--muted);
+      margin-top: 3px;
+    }
+
+    .msg-actions {
+      display: flex;
+      gap: 6px;
+      margin-top: 6px;
+    }
+    .btn-mini {
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(15,23,42,0.98);
+      color: var(--text);
+      font-size: 10px;
+      padding: 4px 8px;
+      cursor: pointer;
+    }
+
+    .msg-table {
+      margin-top: 6px;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid rgba(55,65,81,0.9);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+    }
+
+    th, td {
+      padding: 5px 7px;
+      border-bottom: 1px solid rgba(55,65,81,0.7);
+      text-align: left;
+    }
+
+    th {
+      background: rgba(15,23,42,0.98);
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    tr:nth-child(even) td {
+      background: rgba(15,23,42,0.92);
+    }
+
+    .chat-footer {
+      margin-top: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      grid-column: 1 / -1;
+      grid-row: 2 / 3;
+    }
+
+    .input-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .chat-input {
+      flex: 1;
+      border-radius: 999px;
+      border: 1px solid rgba(55,65,81,0.9);
+      background: rgba(2,6,23,0.98);
+      padding: 9px 12px;
+      color: var(--text);
+      font-size: 13px;
+      outline: none;
+    }
+
+    .chat-input::placeholder {
+      color: var(--muted);
+    }
+
+    .btn-send {
+      width: 38px;
+      height: 38px;
+      border-radius: 999px;
+      border: 1px solid #3b82f6;
+      background: radial-gradient(circle at top, #3b82f6, #1d4ed8);
+      color: #e5e7eb;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 0 16px rgba(59,130,246,0.9);
+    }
+
+    .small-text {
+      font-size: 10px;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .suggested {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 4px;
+    }
+    .chip {
+      font-size: 11px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(2,6,23,0.9);
+      color: var(--text);
+      cursor: pointer;
+    }
+
+    @media (max-width: 900px) {
+      .chat-body { grid-template-columns: 1fr; grid-template-rows: auto 1fr auto; height: auto; }
+      .drive-panel { grid-column: 1 / -1; grid-row: 1 / 2; max-height: 40vh; }
+      .messages { grid-column: 1 / -1; grid-row: 2 / 3; }
+      .msg { max-width: 90%; }
+    }
+
+    /* Panel Drive */
+    .drive-panel {
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 12px;
+      background: rgba(2,6,23,0.85);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      grid-column: 2 / 3;
+      grid-row: 1 / 2;
+      overflow-y: auto;
+      min-height: 0;
+    }
+    .drive-panel h2 {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .drive-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+    .drive-input, .drive-search-input {
+      flex: 1 1 240px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: rgba(15,23,42,0.95);
+      padding: 7px 10px;
+      color: var(--text);
+      font-size: 12px;
+      outline: none;
+    }
+    .drive-input::placeholder, .drive-search-input::placeholder { color: var(--muted); }
+    .btn-drive {
+      border-radius: 10px;
+      border: 1px solid #3b82f6;
+      background: linear-gradient(90deg,#2563eb,#1d4ed8);
+      color: var(--text);
+      font-size: 12px;
+      padding: 7px 10px;
+      cursor: pointer;
+      box-shadow: 0 0 8px rgba(37,99,235,0.5);
+    }
+    .btn-drive.secondary { border-color: #22c55e; background: linear-gradient(90deg,#22c55e,#15803d); box-shadow: 0 0 8px rgba(34,197,94,0.5); }
+    .btn-drive.danger { border-color: #dc2626; background: linear-gradient(90deg,#dc2626,#991b1b); box-shadow: 0 0 8px rgba(220,38,38,0.5); }
+    .drive-status-small { font-size: 11px; color: var(--muted); }
+    .drive-results { display: flex; flex-direction: column; gap: 6px; max-height: none; overflow-y: auto; border: 1px solid var(--border); padding: 6px; border-radius: 10px; background: rgba(15,23,42,0.7); }
+    .drive-doc { border: 1px solid var(--border); border-radius: 10px; padding: 6px 8px; background: rgba(2,6,23,0.6); display: flex; flex-direction: column; gap: 4px; }
+    .drive-doc-header { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+    .drive-doc-title { font-size: 12px; font-weight: 600; }
+    .drive-doc-meta { font-size: 10px; color: var(--muted); }
+    .drive-doc-actions { display: flex; gap: 6px; }
+    .drive-snippet { font-size: 11px; line-height: 1.3; color: var(--muted); max-height: 60px; overflow: hidden; }
+    .badge { font-size: 9px; padding: 2px 6px; border-radius: 999px; background: #1e293b; border: 1px solid var(--border); }
+    .sources { margin-top: 6px; display: flex; flex-wrap: wrap; gap: 6px; }
+    .sources a { text-decoration: none; color: var(--text); }
+    @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+  </style>
+</head>
+<body>
+  <div class="chat-wrapper">
+    <header class="chat-header">
+      <div class="logo">
+        <div class="logo-circle"><span>AI</span></div>
+        <div class="logo-text">
+          <h1>Asistente Empresarial IA</h1>
+          <p>Pregunta lo que quieras: producción, pagos, asistencia, Excel, o chat general.</p>
+        </div>
+      </div>
+      <div class="status">
+        <div class="status-dot"></div>
+        <span id="status-text">Conectando con el servidor...</span>
+      </div>
+    </header>
+
+    <section class="chat-body">
+      <div class="drive-panel">
+        <h2>Gestión Documentos Google Drive</h2>
+        <div class="drive-row">
+          <input id="drive-folder-id" class="drive-input" placeholder="Pega aquí el Folder ID (usa botón 'Compartidos conmigo' → 'Usar como Folder')" />
+          <button id="drive-shared-btn" class="btn-drive">Compartidos conmigo</button>
+          <button id="drive-sync-btn" class="btn-drive">Sync Incremental</button>
+          <button id="drive-sync-recursive-btn" class="btn-drive secondary">Sync Recursivo</button>
+          <button id="drive-reindex-btn" class="btn-drive secondary">Reindex</button>
+        </div>
+        <div class="drive-row">
+          <button id="drive-status-btn" class="btn-drive">Estado</button>
+          <button id="drive-credentials-btn" class="btn-drive">Credenciales</button>
+          <button id="drive-auth-btn" class="btn-drive">Autenticar Drive</button>
+        </div>
+        <div class="drive-row">
+          <input id="drive-search-input" class="drive-search-input" placeholder="Buscar en documentos..." />
+          <button id="drive-search-btn" class="btn-drive">Buscar</button>
+          <button id="drive-clear-btn" class="btn-drive danger">Limpiar</button>
+        </div>
+        <div id="drive-status-info" class="drive-status-small">Estado no cargado.</div>
+        <div id="drive-credentials-info" class="drive-status-small"></div>
+        <div id="drive-search-results" class="drive-results" style="display:none;"></div>
+      </div>
+      <div id="messages" class="messages">
+        <div class="msg-row">
+          <div class="msg ai">
+            Hola 👋 Soy el asistente empresarial con IA.
+            <br><br>
+            <strong>Para empezar con Drive:</strong><br>
+            1. Pulsa "Autenticar Drive" y acepta permisos<br>
+            2. Pulsa "Compartidos conmigo" y selecciona tu carpeta<br>
+            3. Pulsa "Sync Recursivo" para indexar todo<br>
+            4. Busca documentos o pregúntame sobre ellos<br>
+            <br>
+            También respondo preguntas generales y consulto Excel.
+            <div class="msg-meta">Asistente IA</div>
+          </div>
+        </div>
+      </div>
+
+      <footer class="chat-footer">
+        <div class="input-row">
+          <input
+            id="user-input"
+            class="chat-input"
+            type="text"
+            placeholder="Pregunta sobre producción, Excel, o cualquier tema..."
+          />
+          <button id="btn-send" class="btn-send">➤</button>
+        </div>
+        <div class="small-text">
+          <span>💡 Tip: Usa 'Compartidos conmigo' → 'Usar como Folder' → 'Sync Recursivo' para bajar todo.</span>
+          <span>Motor IA conectado (OpenAI).</span>
+        </div>
+        <div id="suggested" class="suggested"></div>
+      </footer>
+    </section>
+  </div>
+
+  <script>
+    // Ajuste de host para backend
+    // - Si se abre desde el propio servidor (http://localhost:3001) -> usa rutas relativas
+    // - Si se abre con Live Server (127.0.0.1:5500) -> apúntalo a http://localhost:3001
+    // - Si se abre como archivo local (file://) -> apúntalo a http://localhost:3001
+    const isFile = window.location.protocol === 'file:';
+    const isBackend3001 = window.location.port === '3001' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname === '');
+    const needsRemote = isFile || (!isBackend3001 && window.location.hostname === '127.0.0.1');
+    const API_HOST = needsRemote ? 'http://localhost:3001' : '';
+    const API_URL = API_HOST + "/api/chat";
+    const DRIVE_BASE = API_HOST + "/api/drive";
+
+    const statusText = document.getElementById("status-text");
+    const messagesContainer = document.getElementById("messages");
+    const input = document.getElementById("user-input");
+    const btnSend = document.getElementById("btn-send");
+
+    // Marcar servidor "listo" (no es un ping real, solo visual)
+    statusText.textContent = "Listo. Servidor local en " + API_URL;
+
+    function addMessage(text, from = "user", tableData = null, sources = null, engine = null) {
+      const row = document.createElement("div");
+      row.classList.add("msg-row");
+      if (from === "user") row.classList.add("user");
+
+      const bubble = document.createElement("div");
+      bubble.classList.add("msg", from);
+
+      bubble.innerText = text;
+
+      // Si viene una tabla (modo producción o modo tablas genérico), la mostramos
+      if (from === "ai" && Array.isArray(tableData) && tableData.length > 0) {
+        const tableWrapper = document.createElement("div");
+        tableWrapper.classList.add("msg-table");
+
+        const table = document.createElement("table");
+
+        // Detectar columnas dinámicamente
+        const firstRow = tableData[0];
+        const columns = Object.keys(firstRow);
+
+        const thead = document.createElement("thead");
+        const trHead = document.createElement("tr");
+        columns.forEach(col => {
+          const th = document.createElement("th");
+          th.textContent = col.charAt(0).toUpperCase() + col.slice(1);
+          trHead.appendChild(th);
+        });
+        thead.appendChild(trHead);
+
+        const tbody = document.createElement("tbody");
+        tableData.forEach(rowData => {
+          const tr = document.createElement("tr");
+          columns.forEach(col => {
+            const td = document.createElement("td");
+            td.textContent = rowData[col] != null ? rowData[col] : "-";
+            tr.appendChild(td);
+          });
+          tbody.appendChild(tr);
+        });
+
+        table.appendChild(thead);
+        table.appendChild(tbody);
+        tableWrapper.appendChild(table);
+        bubble.appendChild(tableWrapper);
+      }
+
+      // Render de fuentes/citas
+      if (from === "ai" && Array.isArray(sources) && sources.length > 0) {
+        const srcDiv = document.createElement("div");
+        srcDiv.classList.add("sources");
+        sources.forEach(s => {
+          const a = document.createElement("a");
+          a.href = s.link || "#";
+          a.target = "_blank";
+          a.rel = "noopener";
+          a.className = "badge";
+          a.title = s.type ? `${s.name} (${s.type})` : s.name;
+          a.textContent = s.name || "Documento";
+          srcDiv.appendChild(a);
+        });
+        bubble.appendChild(srcDiv);
+      }
+
+      // Badge del motor usado
+      if (from === "ai" && engine) {
+        const e = document.createElement('div');
+        e.className = 'sources';
+        const badge = document.createElement('span');
+        badge.className = 'badge';
+        badge.textContent = engine === 'openai' ? 'OpenAI' : (engine === 'ollama' ? 'Ollama' : 'Modo local');
+        e.appendChild(badge);
+        bubble.appendChild(e);
+      }
+
+      const meta = document.createElement("div");
+      meta.classList.add("msg-meta");
+      meta.textContent = from === "user" ? "Tú" : "Asistente IA";
+
+      bubble.appendChild(meta);
+
+      if (from === "ai") {
+        const actions = document.createElement("div");
+        actions.classList.add("msg-actions");
+        const btnCopy = document.createElement("button");
+        btnCopy.className = "btn-mini";
+        btnCopy.textContent = "Copiar respuesta";
+        btnCopy.onclick = async () => {
+          try { await navigator.clipboard.writeText(text); btnCopy.textContent = "Copiado"; setTimeout(()=>btnCopy.textContent="Copiar respuesta",1500);} catch{}
+        };
+        actions.appendChild(btnCopy);
+        if (Array.isArray(tableData) && tableData.length > 0) {
+          const btnCsv = document.createElement("button");
+          btnCsv.className = "btn-mini";
+          btnCsv.textContent = "Exportar CSV";
+          btnCsv.onclick = () => exportTableAsCSV(tableData, "tabla_resumen.csv");
+          actions.appendChild(btnCsv);
+        }
+        bubble.appendChild(actions);
+      }
+      row.appendChild(bubble);
+      messagesContainer.appendChild(row);
+
+      // Scroll al final
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    async function sendMessage() {
+      const text = input.value.trim();
+      if (!text) return;
+
+      addMessage(text, "user");
+      input.value = "";
+      input.focus();
+
+      // Mensaje "escribiendo..."
+      const typingId = "typing-" + Date.now();
+      const rowTyping = document.createElement("div");
+      rowTyping.classList.add("msg-row");
+      const bubbleTyping = document.createElement("div");
+      bubbleTyping.classList.add("msg", "ai");
+      bubbleTyping.id = typingId;
+      bubbleTyping.textContent = "Pensando...";
+      rowTyping.appendChild(bubbleTyping);
+      messagesContainer.appendChild(rowTyping);
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+      try {
+        const resp = await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: text }),
+        });
+
+        const data = await resp.json();
+
+        // Eliminar burbuja de "analizando"
+        rowTyping.remove();
+
+        if (!data.ok) {
+          addMessage("Hubo un error al consultar el asistente.", "ai");
+          return;
+        }
+
+        const respuestaTexto = data.respuesta || data.answer || "Sin respuesta.";
+        const tabla = data.tabla || null;
+        const fuentes = data.sources || null;
+        const engine = data.engine || null;
+
+        addMessage(respuestaTexto, "ai", tabla, fuentes, engine);
+      } catch (err) {
+        console.error(err);
+        rowTyping.remove();
+        addMessage("No pude conectar con el servidor. Revisa si el backend está encendido.", "ai");
+      }
+    }
+
+    btnSend.addEventListener("click", sendMessage);
+
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+
+    // ---- Drive Management ----
+    const driveFolderInput = document.getElementById("drive-folder-id");
+    const driveSyncBtn = document.getElementById("drive-sync-btn");
+    const driveReindexBtn = document.getElementById("drive-reindex-btn");
+    const driveStatusBtn = document.getElementById("drive-status-btn");
+    const driveCredentialsBtn = document.getElementById("drive-credentials-btn");
+    const driveSharedBtn = document.getElementById("drive-shared-btn");
+    const driveSyncRecursiveBtn = document.getElementById("drive-sync-recursive-btn");
+    const driveAuthBtn = document.getElementById("drive-auth-btn");
+    const driveSearchInput = document.getElementById("drive-search-input");
+    const driveSearchBtn = document.getElementById("drive-search-btn");
+    const driveClearBtn = document.getElementById("drive-clear-btn");
+    const driveStatusInfo = document.getElementById("drive-status-info");
+    const driveCredentialsInfo = document.getElementById("drive-credentials-info");
+    const driveResultsContainer = document.getElementById("drive-search-results");
+
+    async function callDrive(endpoint, params = {}) {
+      const base = API_HOST || window.location.origin;
+      const url = new URL(DRIVE_BASE + endpoint, base);
+      Object.entries(params).forEach(([k,v]) => { if (v !== undefined && v !== null && v !== '') url.searchParams.append(k,v); });
+      console.log('➡️ Fetch:', url.toString());
+      const resp = await fetch(url.toString(), { method: 'GET', credentials: 'same-origin' }).catch(err => {
+        console.error('❌ Fetch error:', err);
+        throw err;
+      });
+      if (!resp.ok) {
+        const text = await resp.text().catch(() => '');
+        console.error('❌ HTTP error', resp.status, text);
+        return { ok: false, error: `HTTP ${resp.status}` };
+      }
+      return resp.json();
+    }
+
+    async function loadDriveStatus() {
+      try {
+        const data = await callDrive('/status');
+        if (!data.ok) { driveStatusInfo.textContent = 'Error al obtener estado.'; return; }
+        driveStatusInfo.textContent = `Autenticado: ${data.authenticated ? 'Sí' : 'No'} | Documentos cargados: ${(data.documents||[]).length}`;
+      } catch(e){ driveStatusInfo.textContent = 'Fallo conexión estado Drive.'; }
+    }
+
+    async function loadDriveCredentials() {
+      try {
+        const data = await callDrive('/credentials');
+        if (!data.ok) { driveCredentialsInfo.textContent = 'Sin credenciales.'; return; }
+        driveCredentialsInfo.textContent = `Cliente: ${data.client_email || 'N/D'} | Scopes: ${(data.scopes||[]).join(', ')}`;
+      } catch(e){ driveCredentialsInfo.textContent = 'Error leyendo credenciales.'; }
+    }
+
+    async function syncDrive() {
+      const folderId = driveFolderInput.value.trim();
+      driveStatusInfo.textContent = 'Sincronizando (incremental)...';
+      try {
+        const data = await callDrive('/sync', { incremental: 'true', folderId });
+        if (!data.ok) { driveStatusInfo.textContent = 'Error en sync.'; return; }
+        driveStatusInfo.textContent = `Sync OK. Documentos: ${(data.documents||[]).length}`;
+      } catch(e){ driveStatusInfo.textContent = 'Fallo sincronización.'; }
+    }
+
+    async function syncDriveRecursive() {
+      const folderId = driveFolderInput.value.trim();
+      if (!folderId) { 
+        driveStatusInfo.textContent = '⚠️ Necesitas poner un Folder ID. Pulsa "Compartidos conmigo" y luego "Usar como Folder"';
+        driveStatusInfo.style.color = '#f59e0b';
+        driveFolderInput.style.borderColor = '#f59e0b';
+        driveFolderInput.style.animation = 'shake 0.3s';
+        setTimeout(() => {
+          driveStatusInfo.style.color = '';
+          driveFolderInput.style.borderColor = '';
+        }, 3000);
+        return; 
+      }
+      driveStatusInfo.textContent = 'Sincronizando recursivo (incluye subcarpetas)...';
+      try {
+        const data = await callDrive('/sync-recursive', { folderId });
+        if (!data.ok) { driveStatusInfo.textContent = 'Error en sync recursivo.'; return; }
+        driveStatusInfo.textContent = `✅ Sync Recursivo OK. Documentos: ${(data.documents||[]).length}`;
+      } catch(e){ driveStatusInfo.textContent = 'Fallo sync recursivo.'; }
+    }
+
+    function authDrive() {
+      window.location.href = DRIVE_BASE + '/auth';
+    }
+
+    async function forceReindex() {
+      driveStatusInfo.textContent = 'Reindexando...';
+      try {
+        const data = await callDrive('/force-reindex');
+        if (!data.ok) { driveStatusInfo.textContent = 'Error reindex.'; return; }
+        driveStatusInfo.textContent = `Reindex OK. Tokens: ${data.tokenCount || 'N/D'}`;
+      } catch(e){ driveStatusInfo.textContent = 'Fallo reindex.'; }
+    }
+
+    async function listSharedWithMe() {
+      driveStatusInfo.textContent = 'Listando compartidos...';
+      try {
+        const data = await callDrive('/shared');
+        if (!data.ok) { 
+          driveStatusInfo.textContent = `Error: ${data.error || 'No se pudo listar'}. ¿Estás autenticado?`;
+          driveStatusInfo.style.color = '#f59e0b';
+          setTimeout(() => { driveStatusInfo.style.color = ''; }, 4000);
+          return; 
+        }
+        console.log('✅ Compartidos:', data.files);
+        // Render como resultados clicables; al hacer click en carpeta, rellena Folder ID
+        const items = (data.files||[]).map(f => ({ id: f.id, name: f.name, mimeType: f.mimeType }));
+        driveResultsContainer.style.display = 'flex';
+        driveResultsContainer.innerHTML = '';
+        items.forEach(doc => {
+          const el = document.createElement('div');
+          el.className = 'drive-doc';
+          const header = document.createElement('div');
+          header.className = 'drive-doc-header';
+          const title = document.createElement('div');
+          title.className = 'drive-doc-title';
+          title.textContent = doc.name;
+          const meta = document.createElement('div');
+          meta.className = 'drive-doc-meta';
+          meta.innerHTML = `<span class="badge">${doc.mimeType}</span>`;
+          header.appendChild(title);
+          header.appendChild(meta);
+          el.appendChild(header);
+          const actions = document.createElement('div');
+          actions.className = 'drive-doc-actions';
+          const useBtn = document.createElement('button');
+          useBtn.className = 'btn-drive secondary';
+          useBtn.textContent = 'Usar como Folder';
+          useBtn.onclick = () => { 
+            driveFolderInput.value = doc.id; 
+            driveStatusInfo.textContent = `📁 Carpeta "${doc.name}" lista. Pulsa "Sync Recursivo" para descargar todo.`;
+            driveStatusInfo.style.color = '#22c55e';
+            setTimeout(() => { driveStatusInfo.style.color = ''; }, 4000);
+          };
+          actions.appendChild(useBtn);
+          el.appendChild(actions);
+          driveResultsContainer.appendChild(el);
+        });
+        driveStatusInfo.textContent = `Compartidos: ${items.length}`;
+      } catch(e){ driveStatusInfo.textContent = 'Fallo compartidos.'; }
+    }
+
+    function clearResults() {
+      driveResultsContainer.innerHTML = '';
+      driveResultsContainer.style.display = 'none';
+    }
+
+    function renderDriveResults(docs) {
+      driveResultsContainer.innerHTML = '';
+      if (!docs || docs.length === 0) {
+        driveResultsContainer.style.display = 'none';
+        return;
+      }
+      driveResultsContainer.style.display = 'flex';
+      docs.forEach(doc => {
+        const el = document.createElement('div');
+        el.className = 'drive-doc';
+        const header = document.createElement('div');
+        header.className = 'drive-doc-header';
+        const title = document.createElement('div');
+        title.className = 'drive-doc-title';
+        title.textContent = doc.name || doc.filename || 'Sin nombre';
+        const meta = document.createElement('div');
+        meta.className = 'drive-doc-meta';
+        meta.innerHTML = `<span class="badge">${doc.mimeType || 'mime?'}</span>`;
+        header.appendChild(title);
+        header.appendChild(meta);
+        el.appendChild(header);
+        if (doc.content) {
+          const snippet = document.createElement('div');
+          snippet.className = 'drive-snippet';
+          snippet.textContent = doc.content.slice(0,180);
+          el.appendChild(snippet);
+        }
+        const actions = document.createElement('div');
+        actions.className = 'drive-doc-actions';
+        const openBtn = document.createElement('button');
+        openBtn.className = 'btn-drive';
+        openBtn.textContent = 'Abrir';
+        openBtn.onclick = () => { if (doc.id) window.open(`https://drive.google.com/file/d/${doc.id}/view`, '_blank'); };
+        const delBtn = document.createElement('button');
+        delBtn.className = 'btn-drive danger';
+        delBtn.textContent = 'Borrar';
+        delBtn.onclick = async () => {
+          if (!doc.id) return;
+          delBtn.disabled = true;
+          delBtn.textContent = '...';
+          try {
+            const data = await callDrive('/delete', { id: doc.id });
+            if (data.ok) {
+              el.remove();
+            } else {
+              delBtn.textContent = 'Err';
+            }
+          } catch(e){ delBtn.textContent = 'Err'; }
+        };
+        actions.appendChild(openBtn);
+        actions.appendChild(delBtn);
+        el.appendChild(actions);
+        driveResultsContainer.appendChild(el);
+      });
+    }
+
+    async function searchDrive() {
+      const q = driveSearchInput.value.trim();
+      if (!q) { clearResults(); return; }
+      driveStatusInfo.textContent = 'Buscando...';
+      try {
+        const data = await callDrive('/search', { q });
+        if (!data.ok) { driveStatusInfo.textContent = 'Error búsqueda.'; return; }
+        const docs = data.results || data.documents || [];
+        renderDriveResults(docs);
+        driveStatusInfo.textContent = `Resultados: ${docs.length}`;
+      } catch(e){ driveStatusInfo.textContent = 'Fallo búsqueda.'; }
+    }
+
+    driveSyncBtn.addEventListener('click', syncDrive);
+    driveSyncRecursiveBtn.addEventListener('click', syncDriveRecursive);
+    driveReindexBtn.addEventListener('click', forceReindex);
+    driveStatusBtn.addEventListener('click', loadDriveStatus);
+    driveCredentialsBtn.addEventListener('click', loadDriveCredentials);
+    driveAuthBtn.addEventListener('click', authDrive);
+    driveSearchBtn.addEventListener('click', searchDrive);
+    driveClearBtn.addEventListener('click', clearResults);
+    driveSearchInput.addEventListener('keydown', e => { if (e.key === 'Enter') searchDrive(); });
+    driveSharedBtn.addEventListener('click', listSharedWithMe);
+
+    // Carga inicial de estado
+    loadDriveStatus();
+
+    // Botón para mostrar/ocultar el panel Drive en el header
+    (function(){
+      const headerStatus = document.querySelector('.chat-header .status');
+      if (!headerStatus) return;
+      const btn = document.createElement('button');
+      btn.className = 'btn-mini';
+      btn.textContent = 'Ocultar Drive';
+      btn.style.marginLeft = '6px';
+      const panel = document.querySelector('.drive-panel');
+      btn.onclick = () => {
+        if (!panel) return;
+        const hide = panel.style.display !== 'none' && getComputedStyle(panel).display !== 'none';
+        panel.style.display = hide ? 'none' : 'flex';
+        btn.textContent = hide ? 'Mostrar Drive' : 'Ocultar Drive';
+      };
+      headerStatus.appendChild(btn);
+    })();
+
+    // Utilidades
+    function exportTableAsCSV(rows, filename) {
+      if (!Array.isArray(rows) || rows.length === 0) return;
+      const headers = Array.from(rows.reduce((s, r) => { Object.keys(r||{}).forEach(k=>s.add(k)); return s; }, new Set()));
+      const escape = (v) => {
+        const s = String(v??"").replace(/\r?\n/g, " ");
+        return /[",;]/.test(s) ? '"'+s.replace(/"/g,'""')+'"' : s;
+      };
+      const csv = [headers.join(',')].concat(rows.map(r=>headers.map(h=>escape(r[h])).join(','))).join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', filename);
+      link.style.display = 'none';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }
+
+    // Preguntas sugeridas
+    const suggested = document.getElementById('suggested');
+    const suggestions = [
+      'Resúmeme Octubre 2025 - Control Combustible',
+      '¿Dónde mencionan "EDS LAS ROSAS" en los documentos?',
+      'Dame un resumen de los combustibles por hoja del Excel de Septiembre 2025'
+    ];
+    suggestions.forEach(q => {
+      const chip = document.createElement('button');
+      chip.className = 'chip';
+      chip.textContent = q;
+      chip.onclick = () => { input.value = q; sendMessage(); };
+      suggested.appendChild(chip);
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,31 @@
+# Node
+node_modules/
+npm-debug.log
+package-lock.json
+
+# Datos sensibles
+.env
+.credentials/
+drive-token.json
+*.log
+
+# Datos locales
+datasets/*.xlsx
+datasets/*.xls
+documents/*.pdf
+documents/*.docx
+documents/*.doc
+documents/documents-index.json
+temp/
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
