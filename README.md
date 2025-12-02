@@ -41,7 +41,7 @@ El servidor estará disponible en `http://localhost:3001`
 
 Abrir `chat.html` en el navegador para usar la interfaz web.
 
-## 📖 Uso
+##  Uso
 
 ### Cargar documentos
 
@@ -68,7 +68,7 @@ curl -X POST http://localhost:3001/api/chat \
   -d '{"message": "¿Cuál fue la producción de agosto?"}'
 ```
 
-## 🔌 API
+##  API
 
 ### Google Drive
 
@@ -98,7 +98,7 @@ curl -X POST http://localhost:3001/api/chat \
 - mammoth (Word)
 - Google Drive API
 
-## 📁 Estructura
+## Estructura
 
 ```
 asistente-empresa/
@@ -113,14 +113,14 @@ asistente-empresa/
 └── package.json          # Dependencias del proyecto
 ```
 
-## 🔒 Seguridad y privacidad
+## Seguridad y privacidad
 
 - Procesamiento 100% local con Ollama
 - Credenciales almacenadas localmente (excluidas de Git)
 - Acceso de solo lectura a Google Drive
 - Sin envío de datos a servicios externos
 
-## 🐛 Solución de problemas
+## Solución de problemas
 
 **Ollama no responde**
 ```bash
@@ -134,7 +134,7 @@ Revisar [DRIVE_SETUP.md](DRIVE_SETUP.md) para configuración correcta
 **El servidor no inicia**  
 Verificar que el puerto 3001 esté disponible
 
-## 📝 Licencia
+##  Licencia
 
 MIT
 
