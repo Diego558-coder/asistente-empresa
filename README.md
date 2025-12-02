@@ -41,18 +41,26 @@ El servidor estará disponible en `http://localhost:3001`
 
 Abrir `chat.html` en el navegador para usar la interfaz web.
 
-## 📖Uso
+## 📖 Uso
 
-### Cargar datos
+### Cargar documentos
 
-Coloca archivos Excel en la carpeta `datasets/` o usa la API:
+**Excel/PDF/Word**: Coloca los archivos en la carpeta `datos/` o `documents/`
 
-```bash
-curl -X POST http://localhost:3001/api/datasets/upload \
-  -F "file=@datos.xlsx"
-```
+**Google Drive**: Sincroniza tus documentos corporativos
+
+1. Crear proyecto en [Google Cloud Console](https://console.cloud.google.com)
+2. Habilitar Google Drive API
+3. Obtener credenciales OAuth2
+4. Guardar como `.credentials/credentials.json`
+5. Visitar `http://localhost:3001/api/drive/auth` para autorizar
+6. Ejecutar `POST /api/drive/sync` para sincronizar
+
+Ver [DRIVE_SETUP.md](DRIVE_SETUP.md) para instrucciones detalladas.
 
 ### Realizar consultas
+
+Usa la interfaz web `chat.html` o la API:
 
 ```bash
 curl -X POST http://localhost:3001/api/chat \
@@ -60,33 +68,17 @@ curl -X POST http://localhost:3001/api/chat \
   -d '{"message": "¿Cuál fue la producción de agosto?"}'
 ```
 
-### Configurar Google Drive (opcional)
-
-1. Crear proyecto en [Google Cloud Console](https://console.cloud.google.com)
-2. Habilitar Google Drive API
-3. Obtener credenciales OAuth2
-4. Guardar como `.credentials/credentials.json`
-5. Visitar `http://localhost:3001/api/drive/auth` para autorizar
-
-Documentación completa en [DRIVE_SETUP.md](DRIVE_SETUP.md)
-
 ## 🔌 API
-
-### Datasets
-
-| Endpoint | Método | Descripción |
-|----------|--------|-------------|
-| `/api/datasets` | GET | Listar datasets disponibles |
-| `/api/datasets/upload` | POST | Subir archivo Excel |
-| `/api/datasets/:dataset/:sheet/preview` | GET | Vista previa de hoja |
 
 ### Google Drive
 
 | Endpoint | Método | Descripción |
 |----------|--------|-------------|
-| `/api/drive/auth` | GET | Autorización OAuth |
-| `/api/drive/sync` | POST | Sincronizar archivos |
-| `/api/drive/search` | GET | Buscar documentos |
+| `/api/drive/auth` | GET | Obtener URL de autorización OAuth |
+| `/api/drive/status` | GET | Estado de autenticación |
+| `/api/drive/sync` | POST | Sincronizar archivos de Drive |
+| `/api/drive/search` | GET | Buscar en documentos sincronizados |
+| `/api/drive/list` | GET | Listar archivos disponibles |
 
 ### Chat
 
@@ -106,16 +98,19 @@ Documentación completa en [DRIVE_SETUP.md](DRIVE_SETUP.md)
 - mammoth (Word)
 - Google Drive API
 
-## Estructura
+## 📁 Estructura
 
 ```
 asistente-empresa/
-├── index.js              # Servidor principal
-├── driveManager.js       # Integración Google Drive
-├── chat.html             # Interfaz web
-├── datasets/             # Archivos Excel
+├── index.js              # Servidor principal Express
+├── driveManager.js       # Gestión de Google Drive API
+├── drive-sync.js         # Sincronización automática
+├── chat.html             # Interfaz web del chat
 ├── .credentials/         # Credenciales OAuth (no versionado)
-└── package.json          # Dependencias
+├── datos/                # Archivos Excel locales
+├── documents/            # PDFs y Word locales
+├── temp/                 # Archivos temporales
+└── package.json          # Dependencias del proyecto
 ```
 
 ## 🔒 Seguridad y privacidad
